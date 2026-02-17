@@ -1,0 +1,23 @@
+# Key Value Pairs
+
+name: Foo Bar
+age: 30
+job: Software Engineer
+
+# Lists
+languages:
+  - Python
+  - JavaScript
+  - Go
+
+# Nested Structures
+person:
+
+  name: Alice
+  age: 25
+  skills:
+    - Programming
+    - Data Analysis
+    - Machine Learning  
+
+    
