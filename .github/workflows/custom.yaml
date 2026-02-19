@@ -1,0 +1,15 @@
+name: Hassan custom Action CI
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: hello world custom action
+      uses: hassan21032/custom@main
+      with:
+        who-to-greet: 'Hassan'
