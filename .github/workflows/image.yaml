@@ -19,7 +19,7 @@ jobs:
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build Docker image
-        run: docker build -t hassan21032/hello-app:latest .
+        run: docker build -t hassan21032/hello-app:latest ./Assignment/
 
       - name: Push Docker image to Docker Hub
         run: docker push hassan21032/hello-app:latest
