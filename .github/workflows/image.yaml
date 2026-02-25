@@ -1,25 +1,43 @@
-name: Hassan Pushing Image to Docker Hub CI
+name: Hassan CI/CD - Build, Scan and Push to ECR
 on: [push]
 
 jobs:
-  build-and-publish:
-    runs-on: ubuntu-latest
+  build-scan-push:
+    runs-on: ubuntu-24.04
     permissions:
       id-token: write
-      contents: write
+      contents: read
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v3
         with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Log in to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
       - name: Build Docker image
-        run: docker build -t hassan21032/hello-app:latest ./Assignment/
+        run: |
+          docker build -t hello-app:latest ./Assignment/
 
-      - name: Push Docker image to Docker Hub
-        run: docker push hassan21032/hello-app:latest
+      - name: Run Trivy vulnerability scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: hello-app:latest
+          format: table
+          exit-code: '1'
+          severity: CRITICAL
+
+      - name: Tag and push to ECR
+        run: |
+          ECR_URI=${{ steps.login-ecr.outputs.registry }}/hello-app
+          docker tag hello-app:latest $ECR_URI:latest
+          docker tag hello-app:latest $ECR_URI:${{ github.sha }}
+          docker push $ECR_URI:latest
+          docker push $ECR_URI:${{ github.sha }}
