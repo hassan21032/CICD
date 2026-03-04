@@ -1,0 +1,45 @@
+name: Terraform Plan
+on: [push]
+
+jobs:
+  terraform-plan:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials via OIDC
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Install tflint
+        run: |
+          curl -s https://raw.githubusercontent.com/terraform-linters/tflint/master/install_linux.sh | bash
+
+      - name: Install checkov
+        run: pip install checkov
+
+      - name: Terraform Init
+        working-directory: Assignment/Terraform
+        run: terraform init
+
+      - name: Run tflint
+        working-directory: Assignment/Terraform
+        run: tflint
+
+      - name: Run checkov
+        working-directory: Assignment/Terraform
+        run: checkov -d . --quiet
+
+      - name: Terraform Plan
+        working-directory: Assignment/Terraform
+        run: terraform plan
